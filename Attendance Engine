@@ -1,0 +1,72 @@
+import pandas as pd
+import os
+from datetime import datetime
+
+# Folder where attendance CSVs are stored
+ATTENDANCE_DIR = "AttendanceSheets"
+
+# Ensure the folder exists
+if not os.path.exists(ATTENDANCE_DIR):
+    os.makedirs(ATTENDANCE_DIR)
+
+def create_subject(subject_name):
+    """Create a new CSV file for a subject if not exists."""
+    file_path = os.path.join(ATTENDANCE_DIR, f"{subject_name}_attendance.csv")
+    if not os.path.exists(file_path):
+        df = pd.DataFrame(columns=["Enrollment", "Name", "Date", "Time"])
+        df.to_csv(file_path, index=False)
+    return file_path
+
+def fill_automatic_attendance(subject_name):
+    """Automatically fill attendance with dummy students."""
+    file_path = create_subject(subject_name)
+    now = datetime.now()
+    data = {
+        'Enrollment': ['201295', '201345', '211470'],
+        'Name': ['Sagnik', 'Mehta', 'Shant'],
+        'Date': [now.strftime("%Y-%m-%d")] * 3,
+        'Time': [now.strftime("%H:%M:%S")] * 3
+    }
+    df = pd.DataFrame(data)
+    df.to_csv(file_path, index=False)
+    return "Automatic attendance filled successfully."
+
+def manually_fill_attendance(subject_name, enrollment, student_name):
+    """Manually fill attendance for a student."""
+    file_path = create_subject(subject_name)
+    now = datetime.now()
+    new_entry = {
+        'Enrollment': enrollment,
+        'Name': student_name,
+        'Date': now.strftime("%Y-%m-%d"),
+        'Time': now.strftime("%H:%M:%S")
+    }
+    df_existing = pd.read_csv(file_path)
+    df_existing = df_existing.append(new_entry, ignore_index=True)
+    df_existing.to_csv(file_path, index=False)
+    return "Manual attendance saved successfully."
+
+def view_attendance(subject_name):
+    """View the attendance data of a subject."""
+    file_path = os.path.join(ATTENDANCE_DIR, f"{subject_name}_attendance.csv")
+    if os.path.exists(file_path):
+        df = pd.read_csv(file_path)
+        return df
+    else:
+        raise FileNotFoundError(f"No attendance sheet found for subject: {subject_name}")
+
+# --- Example Usage ---
+
+if __name__ == "__main__":
+    # Create a subject
+    subject = "Maths"
+    create_subject(subject)
+
+    # Automatically fill attendance
+    print(fill_automatic_attendance(subject))
+
+    # Manually add a student
+    print(manually_fill_attendance(subject, "211999", "John Doe"))
+
+    # View the sheet
+    print(view_attendance(subject))
